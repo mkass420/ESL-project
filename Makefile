@@ -1,4 +1,4 @@
-PROJECT_NAME     := blinky_pca10059_mbr
+PROJECT_NAME     := esl-project
 TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 DFU_PACKAGE      := $(OUTPUT_DIRECTORY)/nrf52840_xxaa.dfu
