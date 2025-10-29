@@ -71,8 +71,9 @@ int main(void)
         {
             for(int j = 0; j < led_count[i]; j++)
             {
-                bsp_board_led_invert(i);
+                bsp_board_led_on(i);
                 nrf_delay_ms(500);
+                bsp_board_led_off(i);
             }
         }
     }
