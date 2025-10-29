@@ -74,6 +74,7 @@ int main(void)
                 bsp_board_led_on(i);
                 nrf_delay_ms(500);
                 bsp_board_led_off(i);
+                nrf_delay_ms(500);
             }
         }
     }
