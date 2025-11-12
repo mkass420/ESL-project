@@ -50,7 +50,7 @@ int main(void){
 
             cur_led_blinks += !cur_led_state; // Adds only when led is turned off
             if(cur_led_blinks == blink_count[cur_led_idx]){ // Manually iterate blinks and leds
-                cur_led_idx = (cur_led_idx + 1) % 4;
+                cur_led_idx = (cur_led_idx + 1) % LED_NUMBER;
                 cur_led_blinks = 0;
             }
         }
