@@ -14,6 +14,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
 # Source files common to all targets
 SRC_FILES += \
   $(PROJ_DIR)/src/main.c \
+  $(PROJ_DIR)/src/pwm.c \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
@@ -32,9 +33,11 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
   $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
   $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_systick.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
+  $(PROJ_DIR)/include \
   $(PROJ_DIR)/config \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/modules/nrfx/mdk \
@@ -57,6 +60,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/memobj \
   $(SDK_ROOT)/external/fprintf \
   $(SDK_ROOT)/components/libraries/log/src \
+  $(SDK_ROOT)/modules/nrfx/drivers/include \
 
 # Libraries common to all targets
 LIB_FILES += \
