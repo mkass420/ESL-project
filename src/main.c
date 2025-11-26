@@ -1,46 +1,67 @@
+#include "led.h"
+#include "pwm.h"
+#include "button.h"
+#include "defines.h"
+
 #include <stdbool.h>
 #include <stdint.h>
-#include "nrf_gpio.h"
 #include "nrfx_systick.h"
-#include "pwm.h"
-
-/* Definitions of pins used in project */
-#define SW1 NRF_GPIO_PIN_MAP(1, 6)
-#define LED1 NRF_GPIO_PIN_MAP(0, 6)
-#define LED2_R NRF_GPIO_PIN_MAP(0, 8)
-#define LED2_G NRF_GPIO_PIN_MAP(1, 9)
-#define LED2_B NRF_GPIO_PIN_MAP(0, 12)
-
-#define LED_NUMBER 4
-/* Store led pins for easy iteration */
-const uint32_t led_pins[LED_NUMBER] = {LED1, LED2_R, LED2_G, LED2_B};
-/* Store how many times should led blink based on DEVICE ID */
-const int blink_count[LED_NUMBER] = {6, 5, 9, 3};
+//#include "nrf_log.h"
+//#include "nrf_log_ctrl.h"
+//#include "nrf_log_default_backends.h"
+//#include "nrf_log_backend_usb.h"
 
 extern const uint32_t led_pins[LED_NUMBER];
 extern const int blink_count[LED_NUMBER];
 extern blinking_led_t* blinking_led_pointers[LED_NUMBER];
 
-pwm_pin_t* pwm_pin_pointers[LED_NUMBER] = {&led1, &led2_r, &led2_g, &led2_b};
+volatile bool freezed = true;
 
-void configure_leds(){
-    for(size_t i = 0; i < LED_NUMBER; i++){
-        pwm_init(pwm_pin_pointers[i], led_pins[i], 0, 1000, true);
-    }
-}
-
+// void setup_logging(){
+//     APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
+//     NRF_LOG_DEFAULT_BACKENDS_INIT();
+//     NRF_LOG_INFO("Application started.");
+//     LOG_BACKEND_USB_PROCESS();
+//     NRF_LOG_PROCESS();
+//     NRF_LOG_FLUSH();
+// }
 
 /**
  * @brief Function for application main entry.
  */
 int main(void){
+    //setup_logging();
+    button_init();
+    timers_init();
     configure_leds();
-    while(true){
-        for(size_t i = 0; i < LED_NUMBER; i++){
-            for(int j = 0; j < blink_count[i]; j++){
-                pwm_poll(pwm_pin_pointers[i]);
-                
+    
+    size_t cur_led_idx = 0; // Store led index outside loop to continue from last blinked led
+    int cur_led_blinks = 0; // Store led blink count outside loop so that count doesn't reset with button release
+    blinking_led_t* cur_led_ptr = blinking_led_pointers[cur_led_idx];
+    nrfx_systick_state_t freeze_timestamp = {0};
+    nrfx_systick_state_t start_timestamp = {0};
+    
+    while (true){
+        while(!freezed){
+            if(freeze_timestamp.time != 0){ // Add time when color was freezed to correctly blink
+                advance_timers(&freeze_timestamp, &start_timestamp, cur_led_ptr);
+                freeze_timestamp.time = 0;
             }
+            blink_led_poll(cur_led_ptr);
+            if(cur_led_ptr->hasBlinked){
+                cur_led_blinks++;
+                cur_led_ptr->hasBlinked = false;
+            }
+            if(cur_led_blinks == blink_count[cur_led_idx]){ // Manually iterate blinks and leds
+                cur_led_idx = (cur_led_idx + 1) % LED_NUMBER;
+                cur_led_blinks = 0;
+                cur_led_ptr = blinking_led_pointers[cur_led_idx];
+            }
+            nrfx_systick_get(&start_timestamp);
+        }
+        if(freezed){
+            pwm_poll(&cur_led_ptr->pwm_pin);
+            nrfx_systick_get(&freeze_timestamp);
         }
     }
 }

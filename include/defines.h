@@ -1,0 +1,18 @@
+#ifndef DEFINES_H
+#define DEFINES_H
+
+#define LED_NUMBER 4
+#define LED1 NRF_GPIO_PIN_MAP(0, 6)
+#define LED2_R NRF_GPIO_PIN_MAP(0, 8)
+#define LED2_G NRF_GPIO_PIN_MAP(1, 9)
+#define LED2_B NRF_GPIO_PIN_MAP(0, 12)
+
+#define BLINK_TIME_MS 500
+#define BLINK_DUTY_DELTA 10
+
+#define SW1 NRF_GPIO_PIN_MAP(1, 6)
+#define SW1_PRESSED 0
+#define DEBOUNCE_MS 50
+#define DOUBLE_CLICK_MS 500
+
+#endif
