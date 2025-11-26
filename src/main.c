@@ -17,10 +17,9 @@ const uint32_t led_pins[LED_NUMBER] = {LED1, LED2_R, LED2_G, LED2_B};
 /* Store how many times should led blink based on DEVICE ID */
 const int blink_count[LED_NUMBER] = {6, 5, 9, 3};
 
-pwm_pin_t led1;
-pwm_pin_t led2_r;
-pwm_pin_t led2_g;
-pwm_pin_t led2_b;
+extern const uint32_t led_pins[LED_NUMBER];
+extern const int blink_count[LED_NUMBER];
+extern blinking_led_t* blinking_led_pointers[LED_NUMBER];
 
 pwm_pin_t* pwm_pin_pointers[LED_NUMBER] = {&led1, &led2_r, &led2_g, &led2_b};
 
