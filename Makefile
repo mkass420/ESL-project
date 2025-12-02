@@ -15,8 +15,8 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   SRC_FILES += \
     $(PROJ_DIR)/src/main.c \
     $(PROJ_DIR)/src/pwm.c \
-    $(PROJ_DIR)/src/led.c \
     $(PROJ_DIR)/src/button.c \
+    $(PROJ_DIR)/src/hsv.c \
     $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
     $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
     $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c \
@@ -75,6 +75,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(SDK_ROOT)/components/libraries/sortlist/ \
     $(SDK_ROOT)/components/libraries/pwr_mgmt/ \
     $(SDK_ROOT)/modules/nrfx/drivers/include \
+    $(SDK_ROOT)/modules/nrfx/drivers \
     $(SDK_ROOT)/modules/nrfx/mdk \
     $(SDK_ROOT)/modules/nrfx/hal \
 

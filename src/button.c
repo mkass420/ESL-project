@@ -1,4 +1,6 @@
 #include "button.h"
+#include "hsv.h"
+#include "pwm.h"
 #include "defines.h"
 
 #include "app_error.h"
@@ -6,37 +8,75 @@
 #include "nrf_gpio.h"
 #include "nrfx_gpiote.h"
 #include "nrfx_clock.h"
-//#include "nrf_drv_clock.h"
 #include "sdk_errors.h"
 
 #define DEBOUNCE_TICKS APP_TIMER_TICKS(DEBOUNCE_MS)
 #define DOUBLE_CLICK_TICKS APP_TIMER_TICKS(DOUBLE_CLICK_MS)
+#define HOLD_TICKS APP_TIMER_TICKS(HOLD_MS)
+#define COLOR_UPDATE_TICKS APP_TIMER_TICKS(COLOR_UPDATE_MS) 
 
-extern volatile bool freezed;
+extern volatile input_mode_t mode;
+volatile bool hold = false; 
 volatile bool debounce = false;
 volatile static int clicks = 0;
+extern hsv_color_t current_hsv;
 
 APP_TIMER_DEF(debounce_timer_id);
 APP_TIMER_DEF(double_click_timer_id);
+APP_TIMER_DEF(hold_timer_id);
+APP_TIMER_DEF(color_update_timer_id);
 
+static void color_update_timer_handler(void* p_context){
+    cycle_hsv(mode, &current_hsv);
+    rgb_color_normalized_t rgb = hsv_to_rgb(current_hsv);
+    pwm_rgb_led_set_color(rgb);
+}
+
+
+static void hold_timer_handler(void* p_context){
+    hold = true;
+    clicks = 0;
+    app_timer_start(color_update_timer_id, COLOR_UPDATE_TICKS, NULL);
+}
 
 static void debounce_timer_handler(void* p_context){
     debounce = false;
 }
 
 static void double_click_timer_handler(void* p_context){
-    if(clicks > 1) freezed = !freezed;
+    if(clicks > 1){
+        mode = (mode + 1) % MODE_COUNT;
+        led_playback_handlers[mode]();
+    }
     clicks = 0;
 }
 
 static void button_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action){
-    if(!debounce && nrf_gpio_pin_read(pin) == SW1_PRESSED){
+    bool pin_state =  nrf_gpio_pin_read(pin); 
+    
+    if(debounce) return;
+    
+    if(pin_state == SW1_PRESSED){
         app_timer_start(debounce_timer_id, DEBOUNCE_TICKS, NULL);
-        clicks++;
         debounce = true;
+        
+        app_timer_start(hold_timer_id, HOLD_TICKS, NULL);
+        hold = false;
+        
+        clicks++;
         if (clicks == 1) { 
             app_timer_start(double_click_timer_id, DOUBLE_CLICK_TICKS, NULL);
         }
+        else {
+            
+        }
+    }
+    
+    else if(pin_state == SW1_RELEASED){
+        app_timer_stop(hold_timer_id);
+        app_timer_stop(color_update_timer_id);
+        app_timer_start(debounce_timer_id, DEBOUNCE_TICKS, NULL);
+        debounce = true;
     }
 }
 
@@ -57,6 +97,17 @@ void timers_init(){
                                     APP_TIMER_MODE_SINGLE_SHOT,
                                     double_click_timer_handler);
     APP_ERROR_CHECK(err_code);
+    
+    err_code = app_timer_create(&hold_timer_id,
+                                    APP_TIMER_MODE_SINGLE_SHOT,
+                                    hold_timer_handler);
+    APP_ERROR_CHECK(err_code);
+    
+    err_code = app_timer_create(&color_update_timer_id,
+                                    APP_TIMER_MODE_REPEATED,
+                                    color_update_timer_handler);
+    APP_ERROR_CHECK(err_code);
+    
 }
 
 void button_init(){
