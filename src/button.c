@@ -15,6 +15,8 @@
 #define HOLD_TICKS APP_TIMER_TICKS(HOLD_MS)
 #define COLOR_UPDATE_TICKS APP_TIMER_TICKS(COLOR_UPDATE_MS) 
 
+static volatile button_state_t button_state = BUTTON_STATE_RELEASED;
+
 extern volatile input_mode_t mode;
 volatile bool hold = false; 
 volatile bool debounce = false;
@@ -32,11 +34,15 @@ static void color_update_timer_handler(void* p_context){
     pwm_rgb_led_set_color(rgb);
 }
 
-
 static void hold_timer_handler(void* p_context){
-    hold = true;
-    clicks = 0;
-    app_timer_start(color_update_timer_id, COLOR_UPDATE_TICKS, NULL);
+    // Переход в состояние удержания
+    if(button_state == BUTTON_STATE_PRESSED){
+        button_state = BUTTON_STATE_HOLD;
+        hold = true;
+        clicks = 0;
+        app_timer_stop(double_click_timer_id);
+        app_timer_start(color_update_timer_id, COLOR_UPDATE_TICKS, NULL);
+    }
 }
 
 static void debounce_timer_handler(void* p_context){
@@ -46,37 +52,48 @@ static void debounce_timer_handler(void* p_context){
 static void double_click_timer_handler(void* p_context){
     if(clicks > 1){
         mode = (mode + 1) % MODE_COUNT;
-        led_playback_handlers[mode]();
+        if(led_playback_handlers[mode]) {
+            led_playback_handlers[mode]();
+        }
     }
     clicks = 0;
 }
 
 static void button_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action){
-    bool pin_state =  nrf_gpio_pin_read(pin); 
+    bool pin_state = nrf_gpio_pin_read(pin);
     
     if(debounce) return;
     
-    if(pin_state == SW1_PRESSED){
-        app_timer_start(debounce_timer_id, DEBOUNCE_TICKS, NULL);
-        debounce = true;
-        
-        app_timer_start(hold_timer_id, HOLD_TICKS, NULL);
-        hold = false;
-        
-        clicks++;
-        if (clicks == 1) { 
-            app_timer_start(double_click_timer_id, DOUBLE_CLICK_TICKS, NULL);
-        }
-        else {
-            
-        }
-    }
+    app_timer_start(debounce_timer_id, DEBOUNCE_TICKS, NULL);
+    debounce = true;
     
-    else if(pin_state == SW1_RELEASED){
-        app_timer_stop(hold_timer_id);
-        app_timer_stop(color_update_timer_id);
-        app_timer_start(debounce_timer_id, DEBOUNCE_TICKS, NULL);
-        debounce = true;
+    switch(button_state){
+        case BUTTON_STATE_RELEASED:
+            if(pin_state == SW1_PRESSED){
+                button_state = BUTTON_STATE_PRESSED;
+                clicks++;
+                if(clicks == 1){
+                    app_timer_start(double_click_timer_id, DOUBLE_CLICK_TICKS, NULL);
+                }
+                app_timer_start(hold_timer_id, HOLD_TICKS, NULL);
+            }
+            break;
+            
+        case BUTTON_STATE_PRESSED:
+            if(pin_state == SW1_RELEASED){
+                button_state = BUTTON_STATE_RELEASED;
+                app_timer_stop(hold_timer_id);
+                hold = false;
+            }
+            break;
+            
+        case BUTTON_STATE_HOLD:
+            if(pin_state == SW1_RELEASED){
+                button_state = BUTTON_STATE_RELEASED;
+                hold = false;
+                app_timer_stop(color_update_timer_id);
+            }
+            break;
     }
 }
 
@@ -88,26 +105,24 @@ void timers_init(){
     app_timer_init();
     
     err_code = app_timer_create(&debounce_timer_id,
-                                    APP_TIMER_MODE_SINGLE_SHOT,
-                                    debounce_timer_handler);
+                                APP_TIMER_MODE_SINGLE_SHOT,
+                                debounce_timer_handler);
     APP_ERROR_CHECK(err_code);
     
-        
     err_code = app_timer_create(&double_click_timer_id,
-                                    APP_TIMER_MODE_SINGLE_SHOT,
-                                    double_click_timer_handler);
+                                APP_TIMER_MODE_SINGLE_SHOT,
+                                double_click_timer_handler);
     APP_ERROR_CHECK(err_code);
     
     err_code = app_timer_create(&hold_timer_id,
-                                    APP_TIMER_MODE_SINGLE_SHOT,
-                                    hold_timer_handler);
+                                APP_TIMER_MODE_SINGLE_SHOT,
+                                hold_timer_handler);
     APP_ERROR_CHECK(err_code);
     
     err_code = app_timer_create(&color_update_timer_id,
-                                    APP_TIMER_MODE_REPEATED,
-                                    color_update_timer_handler);
+                                APP_TIMER_MODE_REPEATED,
+                                color_update_timer_handler);
     APP_ERROR_CHECK(err_code);
-    
 }
 
 void button_init(){

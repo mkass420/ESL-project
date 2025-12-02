@@ -43,6 +43,8 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
     $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
     $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_systick.c \
+    $(SDK_ROOT)/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c \
+    
 
   # Include folders common to all targets
   INC_FOLDERS += \
@@ -50,7 +52,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(PROJ_DIR)/config \
     /usr/arm-none-eabi/include \
     $(SDK_ROOT)/components \
-    $(SDL_ROOT)/components/libraries/ \
+    $(SDK_ROOT)/components/libraries/ \
     $(SDK_ROOT)/components/boards \
     $(SDK_ROOT)/components/drivers_nrf/nrf_soc_nosd \
     $(SDK_ROOT)/components/libraries/atomic \
@@ -78,6 +80,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(SDK_ROOT)/modules/nrfx/drivers \
     $(SDK_ROOT)/modules/nrfx/mdk \
     $(SDK_ROOT)/modules/nrfx/hal \
+    $(SDK_ROOT)/components/libraries/mutex \
 
 # Libraries common to all targets
 LIB_FILES += \
