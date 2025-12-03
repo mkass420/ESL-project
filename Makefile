@@ -17,6 +17,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(PROJ_DIR)/src/pwm.c \
     $(PROJ_DIR)/src/button.c \
     $(PROJ_DIR)/src/hsv.c \
+    $(PROJ_DIR)/src/nvmc.c \
     $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
     $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
     $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c \
@@ -44,6 +45,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
     $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_systick.c \
     $(SDK_ROOT)/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c \
+    $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_nvmc.c \
     
 
   # Include folders common to all targets

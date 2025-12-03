@@ -4,18 +4,21 @@
 #include "pwm.h"
 #include "button.h"
 #include "defines.h"
+#include "nvmc.h"
 
 #include <stdbool.h>
 #include "nrf_pwr_mgmt.h"
 
 volatile input_mode_t mode = MODE_NO_INPUT;
 extern volatile bool hold;
-hsv_color_t current_hsv = {(DEVICE_ID % 100) * 360 / 100, 100, 100};
+hsv_color_t current_hsv;
 
-/**
- * @brief Function for application main entry.
- */
 int main(void){
+    if(!read_color(&current_hsv)){
+        current_hsv.hue = DEFAULT_HUE;
+        current_hsv.sat = DEFAULT_SATURATION;
+        current_hsv.val = DEFAULT_VALUE;
+    }
     button_init();
     timers_init();
     pwm_init();

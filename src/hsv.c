@@ -5,6 +5,10 @@
 
 volatile bool isDescending_hsv[MODE_COUNT] = {false, false, true, true}; // Порядок движения для каждого из параметров (0 и 1 как заглушки)
 
+bool isValidHSV(hsv_color_t* hsv){
+    return hsv->hue >= 0 && hsv->sat >= 0 && hsv->val >= 0 && hsv->hue <= 360 && hsv->sat <= 100 && hsv->val <= 100;
+}
+
 void cycle_hsv_hue(hsv_color_t* hsv){ // движение по кругу
     hsv->hue = (hsv->hue + 1) % 360;
 }

@@ -2,6 +2,7 @@
 #include "hsv.h"
 #include "pwm.h"
 #include "defines.h"
+#include "nvmc.h"
 
 #include "app_error.h"
 #include "app_timer.h"
@@ -54,6 +55,9 @@ static void double_click_timer_handler(void* p_context){
         mode = (mode + 1) % MODE_COUNT;
         if(led_playback_handlers[mode]) {
             led_playback_handlers[mode]();
+        }
+        if(mode == MODE_NO_INPUT){
+            write_color(&current_hsv);
         }
     }
     clicks = 0;
