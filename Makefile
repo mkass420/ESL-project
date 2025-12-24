@@ -4,6 +4,7 @@ OUTPUT_DIRECTORY := _build
 DFU_PACKAGE      := $(OUTPUT_DIRECTORY)/nrf52840_xxaa.dfu
 DFU_PORT         ?= /dev/ttyACM0
 
+ESTC_USB_CLI_ENABLED ?= 1
 
 SDK_ROOT ?= ${HOME}/esl-nsdk
 PROJ_DIR := .
@@ -201,7 +202,7 @@ CFLAGS += -fno-builtin -fshort-enums
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -mthumb -mabi=aapcs
-CFLAGS += -DESTC_USB_CLI_ENABLED=1
+CFLAGS += -DESTC_USB_CLI_ENABLED=$(ESTC_USB_CLI_ENABLED)
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)

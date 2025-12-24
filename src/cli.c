@@ -345,4 +345,7 @@ void cli_process(void)
     nrf_cli_process(&m_cli_cdc_acm);
 }
 
+#else
+void cli_init(){};
+void cli_process(){};
 #endif
