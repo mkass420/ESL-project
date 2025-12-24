@@ -30,6 +30,8 @@
 #ifndef APP_CONFIG_H
 #define APP_CONFIG_H
 
+#include "persistent_features.h"
+
 // <e> NRF_LOG_BACKEND_UART_ENABLED - nrf_log_backend_uart - Log UART backend
 //==========================================================
 #ifndef NRF_LOG_BACKEND_UART_ENABLED

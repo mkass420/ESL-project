@@ -1,5 +1,6 @@
 #include "button.h"
 #include "color.h"
+#include "nrf_log.h"
 #include "pwm.h"
 #include "defines.h"
 #include "nvmc.h"
@@ -8,7 +9,6 @@
 #include "app_timer.h"
 #include "nrf_gpio.h"
 #include "nrfx_gpiote.h"
-#include "nrfx_clock.h"
 #include "sdk_errors.h"
 
 #define DEBOUNCE_TICKS APP_TIMER_TICKS(DEBOUNCE_MS)
@@ -51,6 +51,7 @@ static void debounce_timer_handler(void* p_context){
 static void double_click_timer_handler(void* p_context){
     if(clicks > 1){
         mode = (mode + 1) % MODE_COUNT;
+        NRF_LOG_INFO("Changed mode, current mode: %s", MODE_STRING[mode]);
         if(led_playback_handlers[mode]) {
             led_playback_handlers[mode]();
         }
@@ -101,9 +102,6 @@ static void button_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action){
 
 void timers_init(){
     ret_code_t err_code;
-    err_code = nrfx_clock_init(NULL);
-    APP_ERROR_CHECK(err_code);
-    nrfx_clock_lfclk_start();
     app_timer_init();
     
     err_code = app_timer_create(&debounce_timer_id,

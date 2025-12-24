@@ -50,7 +50,7 @@ void write_palette(volatile color_palette_t* palette){
 bool read_palette(volatile color_palette_t* palette){
     color_palette_t data = {0};
     uint8_t invalid[PALETTE_SIZE];
-    memset(invalid, UINT8_MAX, PALETTE_SIZE);
+    memset(invalid, 0xFF, PALETTE_SIZE);
     memcpy(data.raw_data, (uint8_t*)FLASH_SAVE_PALETTE_ADDR, PALETTE_SIZE);
     if(memcmp(data.raw_data, invalid, PALETTE_SIZE) != 0 && isValidPalette(&data)){
         memcpy((uint8_t*)palette->raw_data, data.raw_data, PALETTE_SIZE);

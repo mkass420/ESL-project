@@ -3,7 +3,9 @@
 #include "defines.h"
 
 #include "color.h"
+#include "log_utils.h"
 #include "nrf_gpio.h"
+#include "nrf_log.h"
 #include "nrf_pwm.h"
 #include "nrfx_pwm.h"
 
@@ -139,4 +141,6 @@ void pwm_rgb_led_set_color(rgb_color_normalized_t rgb){
     pwm_rgb_values.channel_2 = rgb.b * 1000;
     pwm_rgb_values.channel_3 = 0;
     
+    NRF_LOG_INFO("Set current color to:")
+    log_color_rgb_normalized(rgb);
 }
