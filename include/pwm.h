@@ -1,6 +1,6 @@
 #ifndef PWM_H
 #define PWM_H
-#include "hsv.h"
+#include "color.h"
 #include <stdbool.h>
 
 

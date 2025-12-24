@@ -2,7 +2,7 @@
 #include "button.h"
 #include "defines.h"
 
-#include "hsv.h"
+#include "color.h"
 #include "nrf_gpio.h"
 #include "nrf_pwm.h"
 #include "nrfx_pwm.h"
