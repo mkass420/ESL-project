@@ -19,13 +19,14 @@ typedef struct{
 } rgb_color_t;
 
 typedef union{
-    struct __attribute__((packed)){
+    struct{
         int16_t hue; // 0-360
         int8_t sat;  // 0-100
         int8_t val;  // 0-100
         char color_name[MAX_COLOR_NAME_SIZE]; // zero-terminated
     };
     uint8_t raw_data[HSV_COLOR_SIZE];
+    uint32_t raw_words[HSV_COLOR_WORDS];
 } hsv_color_t;
 
 typedef struct{
@@ -35,11 +36,12 @@ typedef struct{
 } hsv_color_normalized_t;
 
 typedef union{
-    struct __attribute__((packed)){
+    struct{
         hsv_color_t colors[MAX_COLORS];
         uint8_t color_count;
     };
     uint8_t raw_data[PALETTE_SIZE];
+    uint32_t raw_words[PALETTE_WORDS];
 } color_palette_t;
 
 bool isValidColorName(char* name);

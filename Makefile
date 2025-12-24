@@ -21,6 +21,11 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(SDK_ROOT)/components/libraries/balloc/nrf_balloc.c \
     $(SDK_ROOT)/components/libraries/bsp/bsp.c \
     $(SDK_ROOT)/components/libraries/button/app_button.c \
+    $(SDK_ROOT)/components/libraries/cli/cdc_acm/nrf_cli_cdc_acm.c \
+    $(SDK_ROOT)/components/libraries/cli/cli_utils_cmds.c \
+    $(SDK_ROOT)/components/libraries/cli/nrf_cli.c \
+    $(SDK_ROOT)/components/libraries/cli/rtt/nrf_cli_rtt.c \
+    $(SDK_ROOT)/components/libraries/cli/uart/nrf_cli_uart.c \
     $(SDK_ROOT)/components/libraries/crc16/crc16.c \
     $(SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
     $(SDK_ROOT)/components/libraries/fds/fds.c \
@@ -65,7 +70,6 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(SDK_ROOT)/external/utf_converter/utf.c \
     $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
     $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_power.c \
-    $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
     $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
     $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
     $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_nvmc.c \
@@ -94,7 +98,6 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   INC_FOLDERS += \
     $(PROJ_DIR)/include \
     $(PROJ_DIR)/config \
-    /usr/arm-none-eabi/include \
     $(SDK_ROOT)/components \
     $(SDK_ROOT)/components/boards \
     $(SDK_ROOT)/components/drivers_nrf/nrf_soc_nosd \
@@ -159,6 +162,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
     $(SDK_ROOT)/modules/nrfx/drivers/include \
     $(SDK_ROOT)/modules/nrfx/hal \
     $(SDK_ROOT)/modules/nrfx/mdk \
+    /usr/arm-none-eabi/include \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -176,6 +180,8 @@ CFLAGS += -DAPP_TIMER_V2
 CFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
 CFLAGS += -DBOARD_PCA10059
 CFLAGS += -DCONFIG_GPIO_AS_PINRESET
+CFLAGS += -DDEBUG
+CFLAGS += -DDEBUG_NRF
 CFLAGS += -DFLOAT_ABI_HARD
 CFLAGS += -DMBEDTLS_CONFIG_FILE=\"nrf_crypto_mbedtls_config.h\"
 CFLAGS += -DMBR_PRESENT
@@ -205,6 +211,8 @@ ASMFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
 ASMFLAGS += -DBOARD_PCA10059
 ASMFLAGS += -DBSP_DEFINES_ONLY
 ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
+ASMFLAGS += -DDEBUG
+ASMFLAGS += -DDEBUG_NRF
 ASMFLAGS += -DFLOAT_ABI_HARD
 ASMFLAGS += -DMBR_PRESENT
 ASMFLAGS += -DNRF52840_XXAA

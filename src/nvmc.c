@@ -5,19 +5,38 @@
 #include <stdint.h>
 #include <string.h>
 
+static bool can_write_without_erase(uint32_t address, const uint32_t* src, size_t size_bytes) {
+    uint32_t* flash_ptr = (uint32_t*)address;
+    size_t words = size_bytes / 4;
+    
+    for(size_t i = 0; i < words; i++) {
+        uint32_t current_val = flash_ptr[i];
+        uint32_t new_val = src[i];
+        
+        if (current_val == new_val) continue;
+        if ((current_val & new_val) != new_val) {
+            return false; // Requires turning a 0 into a 1 -> Erase needed
+        }
+    }
+    return true;
+}
+
 void write_color(volatile hsv_color_t* hsv_color){
-    color_palette_t current_palette = {0};
-    uint8_t empty_palette[PALETTE_SIZE] = {0};
-    if(!nrfx_nvmc_word_writable_check(FLASH_SAVE_CURRENT_ADDR, hsv_color->raw_data[0])){
+    color_palette_t saved_palette = {0};
+    bool palette_valid = false;
+
+    if(!can_write_without_erase(FLASH_SAVE_CURRENT_ADDR, (uint32_t*)hsv_color->raw_data, HSV_COLOR_SIZE)){
+        palette_valid = read_palette(&saved_palette);
         nrfx_nvmc_page_erase(FLASH_PAGE_ADDR);
-        read_palette(&current_palette);
+        
+        if(palette_valid){
+             nrfx_nvmc_words_write(FLASH_SAVE_PALETTE_ADDR, (const uint32_t*)saved_palette.raw_words, PALETTE_WORDS);
+             while(!nrfx_nvmc_write_done_check());
+        }
     }
-    nrfx_nvmc_words_write(FLASH_SAVE_CURRENT_ADDR, (uint8_t*)hsv_color->raw_data, HSV_COLOR_SIZE);
+
+    nrfx_nvmc_words_write(FLASH_SAVE_CURRENT_ADDR, (const uint32_t*)hsv_color->raw_data,HSV_COLOR_WORDS);
     while(!nrfx_nvmc_write_done_check());
-    if(memcmp(current_palette.raw_data, empty_palette, PALETTE_SIZE) != 0){
-        nrfx_nvmc_words_write(FLASH_SAVE_CURRENT_ADDR, current_palette.raw_data, PALETTE_SIZE);
-        while(!nrfx_nvmc_write_done_check());
-    }
 }
 
 bool read_color(volatile hsv_color_t* hsv_color){
@@ -33,18 +52,20 @@ bool read_color(volatile hsv_color_t* hsv_color){
 }
 
 void write_palette(volatile color_palette_t* palette){
-    hsv_color_t current_color = {0};
-    uint8_t empty_color[HSV_COLOR_SIZE] = {0};
-    if(!nrfx_nvmc_word_writable_check(FLASH_SAVE_PALETTE_ADDR, palette->raw_data[0])){
+    hsv_color_t saved_color = {0};
+    bool color_valid = false;
+
+    if(!can_write_without_erase(FLASH_SAVE_PALETTE_ADDR, (uint32_t*)palette->raw_data, PALETTE_SIZE)){
+        color_valid = read_color(&saved_color);
         nrfx_nvmc_page_erase(FLASH_PAGE_ADDR);
-        read_color(&current_color);
+        if(color_valid){
+            nrfx_nvmc_words_write(FLASH_SAVE_CURRENT_ADDR, (const uint32_t*)saved_color.raw_words, HSV_COLOR_WORDS);
+            while(!nrfx_nvmc_write_done_check());
+        }
     }
-    nrfx_nvmc_words_write(FLASH_SAVE_PALETTE_ADDR, (uint8_t*)palette->raw_data, PALETTE_SIZE);
+
+    nrfx_nvmc_words_write(FLASH_SAVE_PALETTE_ADDR, (const uint32_t*)palette->raw_words,PALETTE_WORDS);
     while(!nrfx_nvmc_write_done_check());
-    if(memcmp(current_color.raw_data, empty_color, HSV_COLOR_SIZE) != 0){
-        nrfx_nvmc_words_write(FLASH_SAVE_CURRENT_ADDR, current_color.raw_data, HSV_COLOR_SIZE);
-        while(!nrfx_nvmc_write_done_check());
-    }
 }
 
 bool read_palette(volatile color_palette_t* palette){

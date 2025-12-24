@@ -1,3 +1,4 @@
+#include "app_error.h"
 #include "color.h"
 #include "pwm.h"
 #include "button.h"
@@ -27,6 +28,7 @@
 
 #include "nrf_delay.h"
 #include "nrf_drv_clock.h"
+#include "nrf_drv_power.h"
 #include "sdk_errors.h"
 
 volatile input_mode_t mode = MODE_NO_INPUT;
@@ -65,14 +67,17 @@ void try_read_nvmc(){
 }
 
 int main(void){
+    ret_code_t ret = nrf_drv_power_init(NULL);
+    APP_ERROR_CHECK(ret);
+    
     clocks_init();
     logs_init();
 
-    for (int i = 0; i < 50; i++){ // wait 5 seconds for usb initialization (yeah it's bad, but otherwise it just loses data)
-        nrf_delay_ms(100);
-        LOG_BACKEND_USB_PROCESS(); 
-        NRF_LOG_PROCESS(); 
-    }
+    // for (int i = 0; i < 50; i++){ // wait 5 seconds for usb initialization (yeah it's bad, but otherwise it just loses data)
+    //     nrf_delay_ms(100);
+    //     LOG_BACKEND_USB_PROCESS(); 
+    //     NRF_LOG_PROCESS(); 
+    // }
     
     try_read_nvmc();
     
@@ -81,9 +86,16 @@ int main(void){
     pwm_init();
     
     pwm_rgb_led_set_color(hsv_to_rgb((hsv_color_t*)&current_hsv));
+    
+    cli_init();
+    
 
     while (true){
-        LOG_BACKEND_USB_PROCESS();
-        NRF_LOG_PROCESS();
+        cli_process();
+        if(!NRF_LOG_PROCESS()){
+            // __SEV();
+            // __WFE();
+            // __WFE();
+        }
     }
 }
