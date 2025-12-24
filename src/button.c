@@ -1,5 +1,6 @@
 #include "button.h"
-#include "hsv.h"
+#include "color.h"
+#include "nrf_log.h"
 #include "pwm.h"
 #include "defines.h"
 #include "nvmc.h"
@@ -8,7 +9,6 @@
 #include "app_timer.h"
 #include "nrf_gpio.h"
 #include "nrfx_gpiote.h"
-#include "nrfx_clock.h"
 #include "sdk_errors.h"
 
 #define DEBOUNCE_TICKS APP_TIMER_TICKS(DEBOUNCE_MS)
@@ -22,7 +22,7 @@ extern volatile input_mode_t mode;
 volatile bool hold = false; 
 volatile bool debounce = false;
 volatile static int clicks = 0;
-extern hsv_color_t current_hsv;
+extern volatile hsv_color_t current_hsv;
 
 APP_TIMER_DEF(debounce_timer_id);
 APP_TIMER_DEF(double_click_timer_id);
@@ -31,12 +31,10 @@ APP_TIMER_DEF(color_update_timer_id);
 
 static void color_update_timer_handler(void* p_context){
     cycle_hsv(mode, &current_hsv);
-    rgb_color_normalized_t rgb = hsv_to_rgb(current_hsv);
-    pwm_rgb_led_set_color(rgb);
+    apply_color(&current_hsv);
 }
 
 static void hold_timer_handler(void* p_context){
-    // Переход в состояние удержания
     if(button_state == BUTTON_STATE_PRESSED){
         button_state = BUTTON_STATE_HOLD;
         hold = true;
@@ -53,11 +51,12 @@ static void debounce_timer_handler(void* p_context){
 static void double_click_timer_handler(void* p_context){
     if(clicks > 1){
         mode = (mode + 1) % MODE_COUNT;
+        NRF_LOG_INFO("Changed mode, current mode: %s", MODE_STRING[mode]);
         if(led_playback_handlers[mode]) {
             led_playback_handlers[mode]();
         }
         if(mode == MODE_NO_INPUT){
-            write_color(&current_hsv);
+            write_color((hsv_color_t*)&current_hsv);
         }
     }
     clicks = 0;
@@ -103,9 +102,6 @@ static void button_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action){
 
 void timers_init(){
     ret_code_t err_code;
-    err_code = nrfx_clock_init(NULL);
-    APP_ERROR_CHECK(err_code);
-    nrfx_clock_lfclk_start();
     app_timer_init();
     
     err_code = app_timer_create(&debounce_timer_id,
